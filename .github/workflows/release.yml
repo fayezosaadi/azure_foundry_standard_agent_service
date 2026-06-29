@@ -11,17 +11,14 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read # for actions/checkout to fetch code
-#  security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-#  actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+  contents: read
 
 jobs:
-  # Job 1: Format, Lint, Scan
-  test-and-doc:
+  validate-and-scan:
     name: Code Quality & Security
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
 
       # Required for terraform-docs to accurately map modules
@@ -30,16 +27,15 @@ jobs:
         with:
           terraform_version: "1.7.5"
 
-      - name: Check Formatting
+      - name: Check formatting
         run: terraform fmt -check
 
       - name: Initialize
         run: terraform init -backend=false
 
-      - name: Validate Code
+      - name: Validate code
         run: terraform validate
 
-      # TFLint 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@bd0e7245fae11a8d34a7d8685532a3a56f6d1aeb
 
@@ -47,31 +43,22 @@ jobs:
         run: |
           tflint --init
           tflint -f compact
-  
-  #      # Checkov - Tuned for Azure 
-  #      - name: Run Checkov Security Scan
-  #        uses: bridgecrewio/checkov-action@4a1afa9897f7afe297a3762c926e1e800361464f
-  #        with:
-  #          framework: terraform
-  #          output_format: cli
-  #          soft_fail: false
 
-  # Job 2: Auto-increment versions on merge
   tag-release:
     name: Auto-Tag Version
-    needs: test-and-doc
+    needs: validate-and-scan
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
         with:
           fetch-depth: 0
 
-      - name: Bump Version and Push Tag
-        uses: anothrNick/github-tag-action@1.64.0
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@4ed44965e0db8dab2b466a16da04aec3cc312fd8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           WITH_V: true
