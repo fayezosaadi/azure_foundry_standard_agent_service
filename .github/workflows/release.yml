@@ -11,20 +11,22 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: read # for actions/checkout to fetch code
+#  security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
+#  actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
 
 jobs:
   # Job 1: Format, Lint, Scan
   test-and-doc:
-    name: Code Quality, Security & Docs
+    name: Code Quality & Security
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
 
       # Required for terraform-docs to accurately map modules
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@37c3618610d60f92cc57cb7f7e74c2569db0fcd6
         with:
           terraform_version: "1.7.5"
 
@@ -39,7 +41,7 @@ jobs:
 
       # TFLint 
       - name: Setup TFLint
-        uses: terraform-linters/setup-tflint@v4
+        uses: terraform-linters/setup-tflint@bd0e7245fae11a8d34a7d8685532a3a56f6d1aeb
 
       - name: Run TFLint
         run: |
@@ -48,14 +50,11 @@ jobs:
 
       # Checkov - Tuned for Azure 
       - name: Run Checkov Security Scan
-        uses: bridgecrewio/checkov-action@v12
+        uses: bridgecrewio/checkov-action@4a1afa9897f7afe297a3762c926e1e800361464f
         with:
           framework: terraform
           output_format: cli
           soft_fail: false
-          # Tailors scanner to only check Azure architectures
-          framework_types: terraform
-          var_files: ""
 
   # Job 2: Auto-increment versions on merge
   tag-release:
@@ -67,7 +66,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
         with:
           fetch-depth: 0
 
