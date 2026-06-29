@@ -39,7 +39,7 @@ jobs:
 
       # TFLint 
       - name: Setup TFLint
-        uses: github/super-linter/actions/setup-tflint@v5
+        uses: terraform-linters/setup-tflint@v4
 
       - name: Run TFLint
         run: |
