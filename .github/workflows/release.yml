@@ -1,0 +1,79 @@
+name: Validate, Scan, and Tag Module
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Job 1: Format, Lint, Scan
+  test-and-doc:
+    name: Code Quality, Security & Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Required for terraform-docs to accurately map modules
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Check Formatting
+        run: terraform fmt -check
+
+      - name: Initialize
+        run: terraform init -backend=false
+
+      - name: Validate Code
+        run: terraform validate
+
+      # TFLint 
+      - name: Setup TFLint
+        uses: github/super-linter/actions/setup-tflint@v5
+
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint -f compact
+
+      # Checkov - Tuned for Azure 
+      - name: Run Checkov Security Scan
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          framework: terraform
+          output_format: cli
+          soft_fail: false
+          # Tailors scanner to only check Azure architectures
+          framework_types: terraform
+          var_files: ""
+
+  # Job 2: Auto-increment versions on merge
+  tag-release:
+    name: Auto-Tag Version
+    needs: test-and-doc
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump Version and Push Tag
+        uses: anothrNick/github-tag-action@1.64.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
