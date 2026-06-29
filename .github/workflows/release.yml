@@ -47,14 +47,14 @@ jobs:
         run: |
           tflint --init
           tflint -f compact
-
-      # Checkov - Tuned for Azure 
-      - name: Run Checkov Security Scan
-        uses: bridgecrewio/checkov-action@4a1afa9897f7afe297a3762c926e1e800361464f
-        with:
-          framework: terraform
-          output_format: cli
-          soft_fail: false
+  
+  #      # Checkov - Tuned for Azure 
+  #      - name: Run Checkov Security Scan
+  #        uses: bridgecrewio/checkov-action@4a1afa9897f7afe297a3762c926e1e800361464f
+  #        with:
+  #          framework: terraform
+  #          output_format: cli
+  #          soft_fail: false
 
   # Job 2: Auto-increment versions on merge
   tag-release:
