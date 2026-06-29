@@ -1,0 +1,65 @@
+name: Validate, Scan, and Tag Module
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-scan:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
+
+      # Required for terraform-docs to accurately map modules
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@37c3618610d60f92cc57cb7f7e74c2569db0fcd6
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Check formatting
+        run: terraform fmt -check
+
+      - name: Initialize
+        run: terraform init -backend=false
+
+      - name: Validate code
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@bd0e7245fae11a8d34a7d8685532a3a56f6d1aeb
+
+      - name: Run TFLint
+        run: |
+          tflint --init
+          tflint -f compact
+
+  tag-release:
+    name: Auto-Tag Version
+    needs: validate-and-scan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@b9e0990d219a03df7633c93f6f005a8fecbcab22
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@4ed44965e0db8dab2b466a16da04aec3cc312fd8
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
