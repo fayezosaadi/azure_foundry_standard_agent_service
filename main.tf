@@ -104,11 +104,6 @@ resource "azurerm_storage_account" "storage" {
   min_tls_version                 = "TLS1_2"
   allow_nested_items_to_be_public = false
 
-  network_rules {
-    default_action = "Allow"
-    bypass         = ["AzureServices"]
-  }
-
   tags = merge(var.tags, { what_is_this = "Storage Account" })
 
   lifecycle {
@@ -212,7 +207,7 @@ resource "azapi_resource" "cosmos_connection" {
 
   body = {
     properties = {
-      category = "CosmosDB"
+      category = "CosmosDb"
       target   = azurerm_cosmosdb_account.cosmos.endpoint
       authType = "AAD"
       metadata = {
