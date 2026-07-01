@@ -92,12 +92,7 @@ No modules.
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_ai_foundry_account_id"></a> [ai\_foundry\_account\_id](#output\_ai\_foundry\_account\_id) | Resource ID of the Azure AI Foundry account. |
 | <a name="output_ai_foundry_project_id"></a> [ai\_foundry\_project\_id](#output\_ai\_foundry\_project\_id) | Resource ID of the Azure AI Foundry project. |
-| <a name="output_ai_foundry_project_principal_id"></a> [ai\_foundry\_project\_principal\_id](#output\_ai\_foundry\_project\_principal\_id) | Managed identity principal ID of the Azure AI Foundry project. |
-| <a name="output_cosmos_account_id"></a> [cosmos\_account\_id](#output\_cosmos\_account\_id) | Resource ID of the Cosmos DB account linked to the project. |
-| <a name="output_search_service_id"></a> [search\_service\_id](#output\_search\_service\_id) | Resource ID of the Azure AI Search service linked to the project. |
-| <a name="output_storage_account_id"></a> [storage\_account\_id](#output\_storage\_account\_id) | Resource ID of the storage account linked to the project. |
 <!-- END_TF_DOCS -->
 
 ## Contact & Support
